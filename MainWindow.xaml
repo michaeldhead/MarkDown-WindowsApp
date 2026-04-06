@@ -1,0 +1,218 @@
+<Window x:Class="GHSMarkdownEditor.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        xmlns:controls="clr-namespace:GHSMarkdownEditor.Controls"
+        xmlns:views="clr-namespace:GHSMarkdownEditor.Views"
+        xmlns:vm="clr-namespace:GHSMarkdownEditor.ViewModels"
+        xmlns:models="clr-namespace:GHSMarkdownEditor.Models"
+        Title="{Binding WindowTitle}"
+        MinWidth="900" MinHeight="600"
+        Width="1200" Height="800"
+        Style="{StaticResource MaterialDesignWindow}"
+        Background="{DynamicResource MaterialDesign.Brush.Background}"
+        TextElement.Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+        TextElement.FontFamily="{StaticResource MaterialDesignFont}"
+        TextElement.FontSize="14"
+        FontFamily="{StaticResource MaterialDesignFont}"
+        AllowDrop="True">
+
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+
+        <Style x:Key="ViewModeButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource MaterialDesignFlatButton}">
+            <Setter Property="Height" Value="22"/>
+            <Setter Property="Padding" Value="8 0"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+            <Setter Property="Margin" Value="1 0"/>
+        </Style>
+    </Window.Resources>
+
+    <Window.InputBindings>
+        <KeyBinding Key="N"  Modifiers="Ctrl"       Command="{Binding NewTabCommand}"/>
+        <KeyBinding Key="O"  Modifiers="Ctrl"       Command="{Binding OpenFileCommand}"/>
+        <KeyBinding Key="S"  Modifiers="Ctrl"       Command="{Binding SaveFileCommand}"/>
+        <KeyBinding Key="S"  Modifiers="Ctrl+Shift" Command="{Binding SaveFileAsCommand}"/>
+        <KeyBinding Key="W"  Modifiers="Ctrl"       Command="{Binding CloseActiveTabCommand}"/>
+        <KeyBinding Key="B"  Modifiers="Ctrl"       Command="{Binding BoldCommand}"/>
+        <KeyBinding Key="I"  Modifiers="Ctrl"       Command="{Binding ItalicCommand}"/>
+        <KeyBinding Key="P"  Modifiers="Ctrl"       Command="{Binding OpenCommandPaletteCommand}"/>
+        <KeyBinding Key="P"  Modifiers="Ctrl+Shift" Command="{Binding PrintCommand}"/>
+        <KeyBinding Key="D1" Modifiers="Ctrl"
+                    Command="{Binding SetViewModeCommand}"
+                    CommandParameter="{x:Static models:ViewMode.Write}"/>
+        <KeyBinding Key="D2" Modifiers="Ctrl"
+                    Command="{Binding SetViewModeCommand}"
+                    CommandParameter="{x:Static models:ViewMode.Split}"/>
+        <KeyBinding Key="D3" Modifiers="Ctrl"
+                    Command="{Binding SetViewModeCommand}"
+                    CommandParameter="{x:Static models:ViewMode.Preview}"/>
+    </Window.InputBindings>
+
+    <materialDesign:DialogHost Identifier="RootDialog" DialogTheme="Inherit">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>  <!-- Menu Bar -->
+                <RowDefinition Height="Auto"/>  <!-- Tab Bar -->
+                <RowDefinition Height="Auto"/>  <!-- Toolbar Ribbon -->
+                <RowDefinition Height="*"/>     <!-- Content area -->
+                <RowDefinition Height="Auto"/>  <!-- Status Bar -->
+            </Grid.RowDefinitions>
+
+            <!-- Menu Bar -->
+            <controls:MenuBar Grid.Row="0" DataContext="{Binding}"/>
+
+            <!-- Tab Bar -->
+            <controls:TabBar Grid.Row="1" DataContext="{Binding}"/>
+
+            <!-- Toolbar Ribbon -->
+            <controls:ToolbarRibbon Grid.Row="2" DataContext="{Binding}"/>
+
+            <!-- Content area: sidebar (left) + editor/preview views (right) -->
+            <Grid Grid.Row="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <controls:Sidebar Grid.Column="0" DataContext="{Binding Sidebar}"/>
+
+                <!-- Editor / Preview views, visibility-switched by CurrentViewMode -->
+                <Grid Grid.Column="1">
+                    <views:EditorView x:Name="editorView"
+                        Visibility="{Binding IsWriteMode, Converter={StaticResource BoolToVis}}"/>
+                    <views:SplitView x:Name="splitView"
+                        Visibility="{Binding IsSplitMode, Converter={StaticResource BoolToVis}}"/>
+                    <views:PreviewView x:Name="previewView"
+                        Visibility="{Binding IsPreviewMode, Converter={StaticResource BoolToVis}}"/>
+                </Grid>
+            </Grid>
+
+            <!-- Drag-drop highlight border (overlays content area, IsHitTestVisible=False) -->
+            <Border x:Name="dragDropBorder"
+                    Grid.Row="3"
+                    BorderThickness="3"
+                    BorderBrush="Transparent"
+                    IsHitTestVisible="False"
+                    Panel.ZIndex="50"
+                    SnapsToDevicePixels="True"/>
+
+            <!-- Command palette backdrop — catches clicks outside the palette card -->
+            <Border Grid.Row="3"
+                    Panel.ZIndex="99"
+                    Background="Transparent"
+                    Visibility="{Binding IsCommandPaletteOpen, Converter={StaticResource BoolToVis}}"
+                    MouseDown="CommandPaletteBackdrop_MouseDown"/>
+
+            <!-- Command palette overlay — sits at the top of the content area -->
+            <controls:CommandPalette
+                x:Name="commandPalette"
+                Grid.Row="3"
+                Panel.ZIndex="100"
+                VerticalAlignment="Top"
+                DataContext="{Binding CommandPalette}"
+                Visibility="{Binding DataContext.IsCommandPaletteOpen,
+                             RelativeSource={RelativeSource AncestorType=Window},
+                             Converter={StaticResource BoolToVis}}"/>
+
+            <!-- Status Bar -->
+            <StatusBar Grid.Row="4"
+                       Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                       Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"
+                       Height="26">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <DockPanel LastChildFill="True"/>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+
+                <!-- Right side: ViewMode toggle buttons -->
+                <StatusBarItem DockPanel.Dock="Right" Margin="4 0">
+                    <StackPanel Orientation="Horizontal">
+                        <Button Content="Write"
+                                Command="{Binding SetViewModeCommand}"
+                                CommandParameter="{x:Static models:ViewMode.Write}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ViewModeButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentViewMode}"
+                                                     Value="{x:Static models:ViewMode.Write}">
+                                            <Setter Property="Background"
+                                                    Value="{DynamicResource MaterialDesign.Brush.Primary.Dark}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="Split"
+                                Command="{Binding SetViewModeCommand}"
+                                CommandParameter="{x:Static models:ViewMode.Split}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ViewModeButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentViewMode}"
+                                                     Value="{x:Static models:ViewMode.Split}">
+                                            <Setter Property="Background"
+                                                    Value="{DynamicResource MaterialDesign.Brush.Primary.Dark}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                        <Button Content="Preview"
+                                Command="{Binding SetViewModeCommand}"
+                                CommandParameter="{x:Static models:ViewMode.Preview}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource ViewModeButtonStyle}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CurrentViewMode}"
+                                                     Value="{x:Static models:ViewMode.Preview}">
+                                            <Setter Property="Background"
+                                                    Value="{DynamicResource MaterialDesign.Brush.Primary.Dark}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </StackPanel>
+                </StatusBarItem>
+
+                <!-- Left side: file info -->
+                <StatusBarItem>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding ActiveTab.FileName, FallbackValue='No file'}"
+                                   FontSize="12" VerticalAlignment="Center"/>
+                        <Separator Style="{StaticResource {x:Static StatusBar.SeparatorStyleKey}}"
+                                   Margin="4 0"/>
+                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                            <TextBlock.Text>
+                                <MultiBinding StringFormat="{}{0} words">
+                                    <Binding Path="WordCount"/>
+                                </MultiBinding>
+                            </TextBlock.Text>
+                        </TextBlock>
+                        <Separator Style="{StaticResource {x:Static StatusBar.SeparatorStyleKey}}"
+                                   Margin="4 0"/>
+                        <TextBlock FontSize="12" VerticalAlignment="Center">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Text" Value="Saved"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ActiveTab.IsDirty}" Value="True">
+                                            <Setter Property="Text" Value="Unsaved"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                        <Separator Style="{StaticResource {x:Static StatusBar.SeparatorStyleKey}}"
+                                   Margin="4 0"/>
+                        <TextBlock Text="Write" FontSize="12" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StatusBarItem>
+            </StatusBar>
+        </Grid>
+    </materialDesign:DialogHost>
+</Window>

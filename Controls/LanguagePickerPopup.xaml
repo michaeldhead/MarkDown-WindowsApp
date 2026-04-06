@@ -1,0 +1,100 @@
+<UserControl x:Class="GHSMarkdownEditor.Controls.LanguagePickerPopup"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Width="380">
+
+    <UserControl.Resources>
+        <Style x:Key="LanguageChipStyle" TargetType="Button">
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="Padding" Value="12 0"/>
+            <Setter Property="Margin" Value="3"/>
+            <Setter Property="FontFamily" Value="Consolas, Courier New"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Foreground}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{DynamicResource MaterialDesign.Brush.ForegroundLight}"
+                                BorderThickness="1"
+                                CornerRadius="14"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <!-- Current language: filled primary chip -->
+                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
+                                <Setter TargetName="border" Property="Background"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                <Setter TargetName="border" Property="BorderBrush"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </DataTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background"
+                                        Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                <Setter Property="Foreground" Value="White"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Opacity" Value="0.8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <StackPanel Margin="24 20 24 16">
+
+        <!-- Title -->
+        <TextBlock Text="Insert Code Block"
+                   FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="{DynamicResource MaterialDesign.Brush.Primary}"
+                   Margin="0 0 0 12"/>
+
+        <!-- Search box -->
+        <TextBox x:Name="SearchBox"
+                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                 materialDesign:HintAssist.Hint="Search language…"
+                 Style="{StaticResource MaterialDesignOutlinedTextBox}"
+                 Margin="0 0 0 12"
+                 FontSize="13"/>
+
+        <!-- Language chips -->
+        <ItemsControl ItemsSource="{Binding FilteredLanguages}"
+                      Margin="0 0 0 4">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <WrapPanel/>
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Content="{Binding Name}"
+                            Style="{StaticResource LanguageChipStyle}"
+                            Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                            CommandParameter="{Binding Name}"/>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!-- Cancel -->
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0 12 0 0">
+            <Button Content="CANCEL"
+                    Command="{x:Static materialDesign:DialogHost.CloseDialogCommand}"
+                    Style="{StaticResource MaterialDesignFlatButton}"/>
+        </StackPanel>
+
+    </StackPanel>
+</UserControl>

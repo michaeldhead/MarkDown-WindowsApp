@@ -1,0 +1,171 @@
+<UserControl x:Class="GHSMarkdownEditor.Controls.Sidebar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:controls="clr-namespace:GHSMarkdownEditor.Controls"
+             xmlns:models="clr-namespace:GHSMarkdownEditor.Models">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Icon rail -->
+        <Border Grid.Column="0"
+                Background="{DynamicResource MaterialDesign.Brush.Primary.Dark}"
+                Padding="0">
+            <StackPanel VerticalAlignment="Top" Margin="0 4 0 0">
+
+                <!-- Outline -->
+                <Button Command="{Binding TogglePanelCommand}"
+                        CommandParameter="{x:Static models:ActivePanel.Outline}"
+                        Width="40" Height="40" Padding="0"
+                        ToolTip="Outline (headings)">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Outline}">
+                                    <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <materialDesign:PackIcon Kind="FormatListBulleted" Width="20" Height="20"/>
+                </Button>
+
+                <!-- Recent Files -->
+                <Button Command="{Binding TogglePanelCommand}"
+                        CommandParameter="{x:Static models:ActivePanel.RecentFiles}"
+                        Width="40" Height="40" Padding="0"
+                        ToolTip="Recent files">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.RecentFiles}">
+                                    <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <materialDesign:PackIcon Kind="History" Width="20" Height="20"/>
+                </Button>
+
+                <!-- Snippets -->
+                <Button Command="{Binding TogglePanelCommand}"
+                        CommandParameter="{x:Static models:ActivePanel.Snippets}"
+                        Width="40" Height="40" Padding="0"
+                        ToolTip="Snippets">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Snippets}">
+                                    <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <materialDesign:PackIcon Kind="CodeTags" Width="20" Height="20"/>
+                </Button>
+
+                <!-- Settings -->
+                <Button Command="{Binding TogglePanelCommand}"
+                        CommandParameter="{x:Static models:ActivePanel.Settings}"
+                        Width="40" Height="40" Padding="0"
+                        ToolTip="Settings">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Settings}">
+                                    <Setter Property="Background" Value="{DynamicResource MaterialDesign.Brush.Primary}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <materialDesign:PackIcon Kind="Cog" Width="20" Height="20"/>
+                </Button>
+
+            </StackPanel>
+        </Border>
+
+        <!-- Animated content area -->
+        <Border x:Name="contentBorder"
+                Grid.Column="1"
+                Width="0"
+                ClipToBounds="True"
+                BorderThickness="0 0 0 0">
+            <Grid Width="260"
+                  Background="{DynamicResource MaterialDesign.Brush.Background}">
+
+                <!-- Outline panel -->
+                <controls:OutlinePanel>
+                    <controls:OutlinePanel.Style>
+                        <Style TargetType="controls:OutlinePanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Outline}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:OutlinePanel.Style>
+                </controls:OutlinePanel>
+
+                <!-- Recent files panel -->
+                <controls:RecentFilesPanel>
+                    <controls:RecentFilesPanel.Style>
+                        <Style TargetType="controls:RecentFilesPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.RecentFiles}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:RecentFilesPanel.Style>
+                </controls:RecentFilesPanel>
+
+                <!-- Snippets panel -->
+                <controls:SnippetsPanel>
+                    <controls:SnippetsPanel.Style>
+                        <Style TargetType="controls:SnippetsPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Snippets}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:SnippetsPanel.Style>
+                </controls:SnippetsPanel>
+
+                <!-- Settings panel -->
+                <controls:SettingsPanel>
+                    <controls:SettingsPanel.Style>
+                        <Style TargetType="controls:SettingsPanel">
+                            <Setter Property="Visibility" Value="Collapsed"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding CurrentPanel}"
+                                             Value="{x:Static models:ActivePanel.Settings}">
+                                    <Setter Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </controls:SettingsPanel.Style>
+                </controls:SettingsPanel>
+
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>

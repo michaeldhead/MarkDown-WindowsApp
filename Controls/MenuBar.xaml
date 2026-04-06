@@ -1,0 +1,275 @@
+<UserControl x:Class="GHSMarkdownEditor.Controls.MenuBar"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             xmlns:models="clr-namespace:GHSMarkdownEditor.Models">
+
+    <Border Background="{DynamicResource MaterialDesign.Brush.Background}"
+            BorderThickness="0 0 0 1"
+            BorderBrush="{DynamicResource MaterialDesign.Brush.ForegroundLight}">
+
+        <Menu Background="Transparent"
+              Foreground="{DynamicResource MaterialDesign.Brush.Foreground}"
+              Padding="4 0">
+
+            <!-- ── File ───────────────────────────────────────────── -->
+            <MenuItem Header="_File">
+
+                <MenuItem Header="_New"
+                          Command="{Binding NewTabCommand}"
+                          InputGestureText="Ctrl+N">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FileOutline"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Open…"
+                          Command="{Binding OpenFileCommand}"
+                          InputGestureText="Ctrl+O">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FolderOpen"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Save"
+                          Command="{Binding SaveFileCommand}"
+                          InputGestureText="Ctrl+S">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ContentSave"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Save _As…"
+                          Command="{Binding SaveFileAsCommand}"
+                          InputGestureText="Ctrl+Shift+S">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ContentSaveEdit"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <!-- Recent Files submenu — populated from MainViewModel.RecentFiles -->
+                <MenuItem Header="Recent _Files"
+                          ItemsSource="{Binding RecentFiles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header"
+                                    Value="{Binding FileName}"/>
+                            <Setter Property="ToolTip"
+                                    Value="{Binding FilePath}"/>
+                            <Setter Property="Command"
+                                    Value="{Binding DataContext.OpenRecentFileCommand,
+                                            RelativeSource={RelativeSource AncestorType=Menu}}"/>
+                            <Setter Property="CommandParameter"
+                                    Value="{Binding FilePath}"/>
+                            <Setter Property="IsEnabled"
+                                    Value="{Binding FileExists}"/>
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="_Export As…"
+                          Command="{Binding ExportCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Export"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="_Print"
+                          Command="{Binding PrintCommand}"
+                          InputGestureText="Ctrl+Shift+P">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Printer"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="E_xit"
+                          Command="{Binding ExitCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ExitToApp"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+            </MenuItem>
+
+            <!-- ── Format ─────────────────────────────────────────── -->
+            <MenuItem Header="F_ormat">
+
+                <MenuItem Header="_Bold"
+                          Command="{Binding BoldCommand}"
+                          InputGestureText="Ctrl+B">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatBold"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Italic"
+                          Command="{Binding ItalicCommand}"
+                          InputGestureText="Ctrl+I">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatItalic"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Strikethrough"
+                          Command="{Binding StrikethroughCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatStrikethrough"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Inline _Code"
+                          Command="{Binding InlineCodeCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="CodeTags"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="Heading _1"
+                          Command="{Binding H1Command}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatHeader1"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Heading _2"
+                          Command="{Binding H2Command}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatHeader2"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Heading _3"
+                          Command="{Binding H3Command}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatHeader3"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Heading _4"
+                          Command="{Binding H4Command}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatHeader4"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="Bullet _List"
+                          Command="{Binding BulletListCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatListBulleted"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Numbered List"
+                          Command="{Binding NumberedListCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="FormatListNumbered"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="Code _Block"
+                          Command="{Binding CodeBlockCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="CodeBraces"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Table"
+                          Command="{Binding TableCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Table"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Horizontal _Rule"
+                          Command="{Binding HorizontalRuleCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Minus"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Lin_k"
+                          Command="{Binding LinkCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Link"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+            </MenuItem>
+
+            <!-- ── View ───────────────────────────────────────────── -->
+            <MenuItem Header="_View">
+
+                <MenuItem Header="_Write Mode"
+                          Command="{Binding SetViewModeCommand}"
+                          CommandParameter="{x:Static models:ViewMode.Write}"
+                          InputGestureText="Ctrl+1">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Pencil"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Split Mode"
+                          Command="{Binding SetViewModeCommand}"
+                          CommandParameter="{x:Static models:ViewMode.Split}"
+                          InputGestureText="Ctrl+2">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ViewSplitVertical"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="_Preview Mode"
+                          Command="{Binding SetViewModeCommand}"
+                          CommandParameter="{x:Static models:ViewMode.Preview}"
+                          InputGestureText="Ctrl+3">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Eye"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <Separator/>
+
+                <MenuItem Header="_Detach Preview"
+                          Command="{Binding ToggleDetachPreviewCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="OpenInNew"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+            </MenuItem>
+
+            <!-- ── Help ───────────────────────────────────────────── -->
+            <MenuItem Header="_Help">
+
+                <MenuItem Header="_About GHS Markdown Editor"
+                          Command="{Binding ShowAboutCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="InformationOutline"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+                <MenuItem Header="Open _Companion Web App"
+                          Command="{Binding OpenCompanionWebAppCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="Web"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+
+            </MenuItem>
+
+        </Menu>
+    </Border>
+</UserControl>

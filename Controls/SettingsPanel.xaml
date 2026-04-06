@@ -1,0 +1,74 @@
+<UserControl x:Class="GHSMarkdownEditor.Controls.SettingsPanel"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled">
+        <StackPanel>
+            <!-- Header -->
+            <Border Background="{DynamicResource MaterialDesign.Brush.Primary}"
+                    Padding="12 6">
+                <TextBlock Text="Settings"
+                           FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource MaterialDesign.Brush.Primary.Foreground}"/>
+            </Border>
+
+            <StackPanel Margin="12 10 12 0">
+
+                <!-- Theme -->
+                <TextBlock Text="THEME" FontSize="10" FontWeight="Bold"
+                           Opacity="0.6" Margin="0 0 0 6"/>
+                <RadioButton Content="Light"
+                             IsChecked="{Binding IsThemeLight}"
+                             Style="{StaticResource MaterialDesignRadioButton}"
+                             FontSize="12" Margin="0 0 0 4"/>
+                <RadioButton Content="Dark"
+                             IsChecked="{Binding IsThemeDark}"
+                             Style="{StaticResource MaterialDesignRadioButton}"
+                             FontSize="12" Margin="0 0 0 4"/>
+                <RadioButton Content="Auto (system)"
+                             IsChecked="{Binding IsThemeAuto}"
+                             Style="{StaticResource MaterialDesignRadioButton}"
+                             FontSize="12"/>
+
+                <Separator Margin="0 12"/>
+
+                <!-- Editor font size -->
+                <TextBlock Text="FONT SIZE" FontSize="10" FontWeight="Bold"
+                           Opacity="0.6" Margin="0 0 0 6"/>
+                <DockPanel Margin="0 0 0 4">
+                    <TextBlock DockPanel.Dock="Right"
+                               Text="{Binding EditorFontSize}"
+                               FontSize="12" VerticalAlignment="Center"
+                               MinWidth="22" TextAlignment="Right"/>
+                    <Slider Value="{Binding EditorFontSize}"
+                            Minimum="10" Maximum="24"
+                            TickFrequency="1" IsSnapToTickEnabled="True"
+                            Margin="0 0 8 0"/>
+                </DockPanel>
+
+                <Separator Margin="0 12"/>
+
+                <!-- Word wrap -->
+                <TextBlock Text="EDITOR" FontSize="10" FontWeight="Bold"
+                           Opacity="0.6" Margin="0 0 0 6"/>
+                <ToggleButton IsChecked="{Binding EditorWordWrap}"
+                              Style="{StaticResource MaterialDesignSwitchToggleButton}"
+                              Margin="0 0 0 4"/>
+                <TextBlock Text="Word wrap" FontSize="12" Margin="0 -2 0 0"/>
+
+                <Separator Margin="0 12"/>
+
+                <!-- Auto-save -->
+                <TextBlock Text="AUTO-SAVE" FontSize="10" FontWeight="Bold"
+                           Opacity="0.6" Margin="0 0 0 6"/>
+                <ComboBox ItemsSource="{Binding AutoSaveItems}"
+                          SelectedItem="{Binding AutoSaveInterval}"
+                          Style="{StaticResource MaterialDesignComboBox}"
+                          FontSize="12"/>
+
+            </StackPanel>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
