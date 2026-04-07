@@ -44,7 +44,7 @@ public partial class SidebarViewModel : ObservableObject
         _fileService = fileService;
 
         CurrentPanel    = _settings.Get("SidebarCurrentPanel", ActivePanel.None);
-        IsExpanded      = _settings.Get("SidebarIsExpanded", false);
+        IsExpanded      = false;
         AutoSaveInterval = _settings.Get("AutoSaveInterval", "Off");
 
         LoadSnippets();
@@ -93,11 +93,22 @@ public partial class SidebarViewModel : ObservableObject
         set { if (value) App.ThemeService?.SetTheme(ThemeMode.Auto); }
     }
 
+    /// <summary>
+    /// The currently active accent color. Read by the settings panel to reflect the
+    /// persisted choice on open. <see cref="OnThemeChanged"/> fires <c>PropertyChanged</c>
+    /// whenever the accent is updated so any bound UI stays in sync.
+    /// </summary>
+    public AccentColor CurrentAccentColor => App.ThemeService?.CurrentAccentColor ?? AccentColor.Teal;
+
+    [RelayCommand]
+    private void SetAccentColor(AccentColor color) => App.ThemeService?.SetAccentColor(color);
+
     private void OnThemeChanged(object? sender, EventArgs e)
     {
         OnPropertyChanged(nameof(IsThemeLight));
         OnPropertyChanged(nameof(IsThemeDark));
         OnPropertyChanged(nameof(IsThemeAuto));
+        OnPropertyChanged(nameof(CurrentAccentColor));
     }
 
     // ── Editor settings pass-throughs ────────────────────────────────────────

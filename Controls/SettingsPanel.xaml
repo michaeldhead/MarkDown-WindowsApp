@@ -34,6 +34,44 @@
 
                 <Separator Margin="0 12"/>
 
+                <!-- Accent Color -->
+                <TextBlock Text="ACCENT COLOR" FontSize="10" FontWeight="Bold"
+                           Opacity="0.6" Margin="0 0 0 8"/>
+                <!-- WrapPanel so swatches flow to a second row on narrow panels rather than clipping.
+                     At 36px diameter + 4px margin all sides (44px per swatch), 5 swatches = 220px
+                     which fits the ~228px usable width, giving a clean 5+4 split across two rows. -->
+                <WrapPanel>
+                    <Border x:Name="SwatchBlueGrey" Width="36" Height="36" CornerRadius="18"
+                            Background="#455A64" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="BlueGrey"/>
+                    <Border x:Name="SwatchBlue" Width="36" Height="36" CornerRadius="18"
+                            Background="#1976D2" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Blue"/>
+                    <Border x:Name="SwatchTeal" Width="36" Height="36" CornerRadius="18"
+                            Background="#00796B" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Teal"/>
+                    <Border x:Name="SwatchGreen" Width="36" Height="36" CornerRadius="18"
+                            Background="#388E3C" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Green"/>
+                    <Border x:Name="SwatchOrange" Width="36" Height="36" CornerRadius="18"
+                            Background="#F57C00" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Orange"/>
+                    <Border x:Name="SwatchDeepOrange" Width="36" Height="36" CornerRadius="18"
+                            Background="#E64A19" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="DeepOrange"/>
+                    <Border x:Name="SwatchRed" Width="36" Height="36" CornerRadius="18"
+                            Background="#D32F2F" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Red"/>
+                    <Border x:Name="SwatchPink" Width="36" Height="36" CornerRadius="18"
+                            Background="#C2185B" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Pink"/>
+                    <Border x:Name="SwatchPurple" Width="36" Height="36" CornerRadius="18"
+                            Background="#7B1FA2" Cursor="Hand" Margin="4"
+                            MouseLeftButtonUp="OnSwatchClick" Tag="Purple"/>
+                </WrapPanel>
+
+                <Separator Margin="0 12"/>
+
                 <!-- Editor font size -->
                 <TextBlock Text="FONT SIZE" FontSize="10" FontWeight="Bold"
                            Opacity="0.6" Margin="0 0 0 6"/>

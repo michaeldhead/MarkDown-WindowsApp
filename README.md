@@ -85,16 +85,13 @@ If the preview does not work, download the runtime from
 **Prerequisites:**
 - Visual Studio 2022 with .NET Desktop workload
 - .NET 8 SDK
-- Inno Setup 6.x (for installer only)
 
 **Steps:**
 ```bash
 git clone https://github.com/michaeldhead/MarkDown-WindowsApp.git
 ```
-Open `GHSMarkdownEditor.sln` in Visual Studio 2022, set configuration to Release,
+Open `GHSMarkdownEditor.csproj` in Visual Studio 2022 or 2026, set configuration to Release,
 and build (`Ctrl+Shift+B`). Zero errors and zero warnings is the required build gate.
-
-To compile the installer, open `Installer/setup.iss` in Inno Setup and press `Ctrl+F9`.
 
 ---
 

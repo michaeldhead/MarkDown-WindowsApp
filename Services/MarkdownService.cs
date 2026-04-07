@@ -1,4 +1,8 @@
 using Markdig;
+using Markdig.Renderers;
+using Markdig.Renderers.Html;
+using Markdig.Syntax;
+using System.IO;
 
 namespace GHSMarkdownEditor.Services;
 
@@ -152,28 +156,116 @@ public class MarkdownService
         input[type="checkbox"] { margin-right: 6px; }
         """;
 
+    // Appended to both themes. Provides the visible outline that SplitView's cursor-sync
+    // feature activates by adding the 'active-block' class via ExecuteScriptAsync.
+    // Also provides styles for the inline-edit overlay that appears on double-click.
+    private const string ActiveBlockCss = """
+
+        .active-block {
+            outline: 2px solid #1976D2;
+            outline-offset: 2px;
+            border-radius: 3px;
+        }
+        .inline-edit-overlay {
+            position: relative;
+            z-index: 100;
+        }
+        .inline-edit-overlay textarea {
+            width: 100%;
+            min-height: 80px;
+            font-family: monospace;
+            font-size: 13px;
+            padding: 8px;
+            border: 2px solid #1976D2;
+            border-radius: 4px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            resize: vertical;
+            box-sizing: border-box;
+        }
+        .inline-edit-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            justify-content: flex-end;
+        }
+        .inline-edit-actions button {
+            padding: 4px 16px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 13px;
+        }
+        .inline-edit-save {
+            background: #1976D2;
+            color: white;
+        }
+        .inline-edit-cancel {
+            background: #444;
+            color: #ccc;
+        }
+        """;
+
     /// <summary>
     /// Renders <paramref name="markdown"/> to a complete HTML page with inline CSS.
+    /// Parses to a Markdig AST first, stamps every block with a <c>data-source-line</c>
+    /// attribute (1-based, matching AvalonEdit's line numbers), then renders to HTML.
+    /// This allows the preview pane to highlight the block that corresponds to the
+    /// editor cursor position without a separate server round-trip.
     /// The CSS is embedded directly (not linked) so <c>NavigateToString</c> can display
-    /// it without a base URL or local file access — WebView2 does not resolve relative
-    /// stylesheet links when content is loaded via <c>NavigateToString</c>.
+    /// it without a base URL — WebView2 does not resolve relative links via NavigateToString.
     /// </summary>
     /// <param name="isDark">When true, uses the dark-mode colour palette.</param>
     public string ToHtml(string markdown, bool isDark = false)
     {
-        var body = Markdig.Markdown.ToHtml(markdown ?? string.Empty, Pipeline);
+        var document = Markdig.Markdown.Parse(markdown ?? string.Empty, Pipeline);
+
+        // Walk the AST and stamp every block with data-source-line so the JavaScript
+        // highlight logic can find the element closest to the editor cursor position.
+        // Markdig line numbers are 0-based; add 1 to match AvalonEdit's 1-based lines.
+        InjectSourceLines(document);
+
+        var writer = new StringWriter();
+        var renderer = new HtmlRenderer(writer);
+        Pipeline.Setup(renderer);
+        renderer.Render(document);
+        writer.Flush();
+        var body = writer.ToString();
+
         var css = isDark ? DarkCss : LightCss;
         return $"""
             <!DOCTYPE html>
             <html>
             <head>
             <meta charset="utf-8">
-            <style>{css}</style>
+            <style>{css}{ActiveBlockCss}</style>
             </head>
             <body>
             {body}
             </body>
             </html>
             """;
+    }
+
+    /// <summary>
+    /// Recursively walks <paramref name="container"/> and adds a <c>data-source-line</c>
+    /// HTML attribute to every block. Markdig's standard renderers honour
+    /// <see cref="HtmlAttributes"/> by calling <c>WriteAttributes</c> when opening each
+    /// block tag, so no custom renderer is needed.
+    /// </summary>
+    private static void InjectSourceLines(ContainerBlock container)
+    {
+        foreach (var block in container)
+        {
+            var attrs = block.TryGetAttributes() ?? new HtmlAttributes();
+            if (attrs.Properties == null)
+                attrs.Properties = new List<KeyValuePair<string, string?>>();
+            attrs.Properties.Add(
+                new KeyValuePair<string, string?>("data-source-line", (block.Line + 1).ToString()));
+            block.SetAttributes(attrs);
+
+            if (block is ContainerBlock child)
+                InjectSourceLines(child);
+        }
     }
 }

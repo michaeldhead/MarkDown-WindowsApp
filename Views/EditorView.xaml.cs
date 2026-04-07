@@ -1,12 +1,15 @@
 using AvalonEditB;
+using AvalonEditB.Document;
 using AvalonEditB.Highlighting;
 using AvalonEditB.Highlighting.Xshd;
+using AvalonEditB.Rendering;
 using GHSMarkdownEditor.ViewModels;
 using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Xml;
 
 namespace GHSMarkdownEditor.Views;
@@ -25,6 +28,19 @@ public partial class EditorView : UserControl
     /// and avoid a feedback loop.
     /// </summary>
     private bool _isUpdatingFromViewModel;
+
+    /// <summary>
+    /// CTS for the cursor-line debounce. Replaced on every caret move so that only the
+    /// last position in a burst of rapid movements fires <see cref="CursorLineChanged"/>.
+    /// </summary>
+    private CancellationTokenSource _cursorCts = new();
+
+    /// <summary>
+    /// Raised (debounced 150 ms) when the caret moves to a new line in the editor.
+    /// The argument is the 1-based line number, matching AvalonEdit's <c>Caret.Line</c>.
+    /// Consumed by <c>SplitView</c> to highlight the corresponding block in the preview.
+    /// </summary>
+    public event EventHandler<int>? CursorLineChanged;
 
     // Exposed for SplitView scroll sync
     internal TextEditor Editor => textEditor;
@@ -134,8 +150,37 @@ public partial class EditorView : UserControl
         textEditor.SyntaxHighlighting = GetMarkdownHighlighting();
         textEditor.TextChanged += OnEditorTextChanged;
         textEditor.MouseDoubleClick += OnEditorMouseDoubleClick;
+        textEditor.TextArea.Caret.PositionChanged += OnCaretPositionChanged;
+        textEditor.TextArea.TextView.LineTransformers.Add(new CurrentLineHighlighter(textEditor));
         SubscribeToViewModel();
         SyncFromViewModel();
+    }
+
+    /// <summary>
+    /// Forces a full redraw of the text view immediately so <see cref="CurrentLineHighlighter"/>
+    /// clears the old line tint and paints the new one in the same frame, then fires
+    /// <see cref="CursorLineChanged"/> after the 150 ms debounce so the preview highlight
+    /// does not flood on rapid key-repeat or held arrow keys.
+    /// </summary>
+    private async void OnCaretPositionChanged(object? sender, EventArgs e)
+    {
+        // Immediate: force a full text-view redraw so the old line highlight is cleared
+        // and the new one is painted atomically. InvalidateLayer(Background) is sometimes
+        // insufficient because it only marks the layer dirty without guaranteeing the
+        // stale line is redrawn in the same pass.
+        textEditor.TextArea.TextView.Redraw();
+
+        // Debounced: notify SplitView to update the preview block highlight.
+        _cursorCts.Cancel();
+        _cursorCts = new CancellationTokenSource();
+        var token = _cursorCts.Token;
+        try
+        {
+            await Task.Delay(150, token);
+            if (!token.IsCancellationRequested)
+                CursorLineChanged?.Invoke(this, textEditor.TextArea.Caret.Line);
+        }
+        catch (OperationCanceledException) { }
     }
 
     private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -200,5 +245,42 @@ public partial class EditorView : UserControl
         e.Handled = true;
         var vm = GetViewModel();
         vm?.OpenLanguagePickerForReplaceCommand.Execute(lineNumber);
+    }
+
+    // ── Current-line background highlight ────────────────────────────────────
+
+    /// <summary>
+    /// AvalonEdit line colorizer that paints a subtle background tint on the line that
+    /// contains the caret. Registered once in <see cref="OnLoaded"/> and kept alive for the
+    /// lifetime of the control. The brushes are frozen (immutable) so WPF can cache them
+    /// in the rendering thread without marshalling overhead.
+    /// </summary>
+    private sealed class CurrentLineHighlighter : DocumentColorizingTransformer
+    {
+        private readonly TextEditor _editor;
+
+        // Light theme: accent blue (#1976D2) at ~8% opacity
+        private static readonly Brush LightBrush =
+            new SolidColorBrush(Color.FromArgb(0x14, 0x19, 0x76, 0xD2));
+
+        // Dark theme: white at ~6% opacity — visible but not glaring on dark backgrounds
+        private static readonly Brush DarkBrush =
+            new SolidColorBrush(Color.FromArgb(0x0F, 0xFF, 0xFF, 0xFF));
+
+        static CurrentLineHighlighter()
+        {
+            LightBrush.Freeze();
+            DarkBrush.Freeze();
+        }
+
+        public CurrentLineHighlighter(TextEditor editor) => _editor = editor;
+
+        protected override void ColorizeLine(DocumentLine line)
+        {
+            if (line.LineNumber != _editor.TextArea.Caret.Line) return;
+            var brush = App.ThemeService?.IsDark == true ? DarkBrush : LightBrush;
+            ChangeLinePart(line.Offset, line.EndOffset,
+                element => element.TextRunProperties.SetBackgroundBrush(brush));
+        }
     }
 }
